@@ -2242,6 +2242,19 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+def test_concatenate_datasets_column_typing(dataset):
+    data = {"label": [0, 1, 1, 0], "col_1": ["a", "b", "c", "d"]}
+    data_2 = {"col2": [0, 1, 1, 0]}
+
+    features = Features({"label": ClassLabel(2, names=["POS", "NEG"]), "col_1": Value("string")})
+    features_2 = Features({"col2": ClassLabel(2, names=["POS", "NEG"])})
+    with Dataset.from_dict(data, features=features, info=DatasetInfo(features=features)) as dset:
+        with Dataset.from_dict(data_2, features=features_2, info=DatasetInfo(features=features_2)) as dset2:
+            concatenated = concatenate_datasets([dset, dset2], axis=1)
+            assert isinstance(concatenated.features["label"], ClassLabel)
+            assert isinstance(concatenated.features["col2"], ClassLabel)
+
+
 def test_interleave_datasets():
     d1 = Dataset.from_dict({"a": [0, 1, 2]})
     d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})

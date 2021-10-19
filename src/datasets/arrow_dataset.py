@@ -3643,6 +3643,15 @@ def concatenate_datasets(
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
+    # Find column types.
+    if axis == 1:
+        features_d = {}
+        for dset in dsets:
+            features_d.update(dset.features)
+        features = Features(features_d)
+    else:
+        features = dsets[0].features
+
     # Concatenate tables
     tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
     # There might be no table with data left hence return first empty table
@@ -3702,6 +3711,7 @@ def concatenate_datasets(
         fingerprint=fingerprint,
     )
     concatenated_dataset.set_format(**format)
+    concatenated_dataset = concatenated_dataset.cast(features)
     return concatenated_dataset
 
 
